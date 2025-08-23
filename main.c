@@ -41,7 +41,7 @@ void op_add(struct value *stack, int *top) {
 }
 
 void op_print(struct value *stack, int *top) {
-	struct value a = stack[*top];
+	struct value a = stack[*top - 1];
 
 	switch (a.type) {
 		case VINT:
@@ -82,6 +82,12 @@ void interp(char *source, int n) {
     				printf("error: invalid token\n");
     				break;
     		}
+    	} else if (*tok == '"') {
+    		int i = 1;
+    		while (tok[i++] != '"');
+
+			char *str = strndup(tok + 1, i - 2);
+    		stack[top++] = (struct value){ .type = VSTR, .v_str = str };
     	} else if (strcmp(tok, "+") == 0)
     		op_add(stack, &top);
     	else if (strcmp(tok, ".") == 0)
