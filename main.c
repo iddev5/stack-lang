@@ -26,7 +26,7 @@ struct value {
 };
 
 void op_add(struct value *stack, int *top) {
-    struct value a = stack[--*top], b = stack[--*top];
+    struct value a = stack[(*top)--], b = stack[(*top)--];
 
 	if (a.type == VFLOAT || b.type == VFLOAT) {
 		float res = 0;
@@ -34,14 +34,14 @@ void op_add(struct value *stack, int *top) {
 		else if (b.type != VFLOAT) res = a.v_float + b.v_int;
 		else res = a.v_float + b.v_float;
 
-		stack[*top++] = (struct value){ .type = VFLOAT, .v_float = res };
+		stack[++*top] = (struct value){ .type = VFLOAT, .v_float = res };
 	} else {
-		stack[*top++] = (struct value){ .type = VINT, .v_int = a.v_int + b.v_int };
+		stack[++*top] = (struct value){ .type = VINT, .v_int = a.v_int + b.v_int };
 	}
 }
 
 void op_print(struct value *stack, int *top) {
-	struct value a = stack[*top - 1];
+	struct value a = stack[*top];
 
 	switch (a.type) {
 		case VINT:
@@ -58,7 +58,7 @@ void op_print(struct value *stack, int *top) {
 
 void interp(char *source, int n) {
 	struct value stack[STACK_INIT];
-	int top = 0;
+	int top = -1;
 	char *tok, *rest = source;
 
     while (tok = strtok_r(rest, " ", &rest)) {
@@ -70,12 +70,12 @@ void interp(char *source, int n) {
     		switch (is_float) {
     			case 0: {
 					int num = atoi(tok);
-		    		stack[top++] = (struct value){ .type = VINT, .v_int = num };
+		    		stack[++top] = (struct value){ .type = VINT, .v_int = num };
 					break;
 				}
     			case 1: {
 					float num = atof(tok);
-					stack[top++] = (struct value){ .type = VFLOAT, .v_float = num };
+					stack[++top] = (struct value){ .type = VFLOAT, .v_float = num };
 					break;
 				}
     			default:
@@ -87,7 +87,7 @@ void interp(char *source, int n) {
     		while (tok[i++] != '"');
 
 			char *str = strndup(tok + 1, i - 2);
-    		stack[top++] = (struct value){ .type = VSTR, .v_str = str };
+    		stack[++top] = (struct value){ .type = VSTR, .v_str = str };
     	} else if (strcmp(tok, "+") == 0)
     		op_add(stack, &top);
     	else if (strcmp(tok, ".") == 0)
