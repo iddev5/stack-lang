@@ -30,8 +30,9 @@ void op_add(struct value *stack, int *top) {
 
 	if (a.type == VFLOAT || b.type == VFLOAT) {
 		float res = 0;
-		if (a.type == VFLOAT) res = a.v_float + b.v_int;
-		else res = a.v_int + b.v_float;
+		if (a.type != VFLOAT) res = a.v_int + b.v_float;
+		else if (b.type != VFLOAT) res = a.v_float + b.v_int;
+		else res = a.v_float + b.v_float;
 
 		stack[*top++] = (struct value){ .type = VFLOAT, .v_float = res };
 	} else {
