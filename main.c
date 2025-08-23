@@ -61,6 +61,14 @@ void op_print(struct value *stack, int *top) {
 	}
 }
 
+void op_dup(struct value *stack, int *top) {
+	struct value a = stack[*top];
+	struct value duped_a = a;
+	if (a.type == VSTR)
+		duped_a.v_str = strdup(a.v_str);
+	stack[++*top] = duped_a;
+}
+
 void interp(char *source, int n) {
 	struct value stack[STACK_INIT];
 	int top = -1;
@@ -96,7 +104,8 @@ void interp(char *source, int n) {
     	} else if (strcmp(tok, "+") == 0) op_add(stack, &top);
     	else if (strcmp(tok, "-") == 0) op_sub(stack, &top);
 		else if (strcmp(tok, "*") == 0) op_mul(stack, &top);
-		else if (strcmp(tok, "/") == 0) op_div(stack, &top);
+		else if (strcmp(tok, "/") == 0) op_div(stack, &top);	
+		else if (strcmp(tok, "dup") == 0) op_dup(stack, &top);
     	else if (strcmp(tok, "print") == 0)
     		op_print(stack, &top);
     }
