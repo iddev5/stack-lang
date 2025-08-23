@@ -33,7 +33,7 @@ void op_add(struct value *stack, int *top) {
 		if (a.type == VFLOAT) res = a.v_float + b.v_int;
 		else res = a.v_int + b.v_float;
 
-		stack[*top++] = (struct value){ .type = VFLOAT, .v_int = res };
+		stack[*top++] = (struct value){ .type = VFLOAT, .v_float = res };
 	} else {
 		stack[*top++] = (struct value){ .type = VINT, .v_int = a.v_int + b.v_int };
 	}
