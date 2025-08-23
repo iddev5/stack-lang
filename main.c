@@ -25,20 +25,25 @@ struct value {
 	};
 };
 
-void op_add(struct value *stack, int *top) {
-    struct value a = stack[(*top)--], b = stack[(*top)--];
+#define M_CONCAT(a, b) a ## b
 
-	if (a.type == VFLOAT || b.type == VFLOAT) {
-		float res = 0;
-		if (a.type != VFLOAT) res = a.v_int + b.v_float;
-		else if (b.type != VFLOAT) res = a.v_float + b.v_int;
-		else res = a.v_float + b.v_float;
+#define BIN_OP(name, sym) \
+void M_CONCAT(op_, name)(struct value *stack, int *top) { \
+    struct value b = stack[(*top)--], a = stack[(*top)--]; \
+	if (a.type == VFLOAT || b.type == VFLOAT) { \
+		float res = 0; \
+		if (a.type != VFLOAT) res = a.v_int sym b.v_float; \
+		else if (b.type != VFLOAT) res = a.v_float sym b.v_int; \
+		else res = a.v_float sym b.v_float; \
+		stack[++*top] = (struct value){ .type = VFLOAT, .v_float = res }; \
+	} else\
+		stack[++*top] = (struct value){ .type = VINT, .v_int = a.v_int sym b.v_int }; \
+} \
 
-		stack[++*top] = (struct value){ .type = VFLOAT, .v_float = res };
-	} else {
-		stack[++*top] = (struct value){ .type = VINT, .v_int = a.v_int + b.v_int };
-	}
-}
+BIN_OP(add, +);
+BIN_OP(sub, -);
+BIN_OP(mul, *);
+BIN_OP(div, /);
 
 void op_print(struct value *stack, int *top) {
 	struct value a = stack[*top];
@@ -88,8 +93,10 @@ void interp(char *source, int n) {
 
 			char *str = strndup(tok + 1, i - 2);
     		stack[++top] = (struct value){ .type = VSTR, .v_str = str };
-    	} else if (strcmp(tok, "+") == 0)
-    		op_add(stack, &top);
+    	} else if (strcmp(tok, "+") == 0) op_add(stack, &top);
+    	else if (strcmp(tok, "-") == 0) op_sub(stack, &top);
+		else if (strcmp(tok, "*") == 0) op_mul(stack, &top);
+		else if (strcmp(tok, "/") == 0) op_div(stack, &top);
     	else if (strcmp(tok, ".") == 0)
     		op_print(stack, &top);
     }
