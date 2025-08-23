@@ -4,14 +4,58 @@
 #include <stdlib.h>
 
 #define STACK_INIT 255
+#define BIND_INIT 64
 
+struct value;
+
+// TODO: better hashing function/strategy
 unsigned int hash(char *string, int cap) {
 	unsigned int code = 0;
 	for (code = 0; *string != '\0'; string++) {
-		code = *string + 31 * code;
+		code = *string + 32 * code;
 	}
 
 	return code % cap;
+}
+
+enum { BNONE, BNATIVE, BFUNC };
+
+struct bind_value {
+	int type;
+	union {
+		void (*native)(struct value *, int *);
+		char *func;
+	};
+};
+
+#define MK_NATIVE(nat) (struct bind_value){ .type = BNATIVE, .native = nat }
+#define MK_NONE() (struct bind_value){ .type = BNONE, .native = NULL }
+
+// TODO
+struct bind_value_kv {
+	char *key;
+	struct bind_value value;
+};
+
+struct bind_map {
+	struct bind_value *kvs;
+	int cap;
+};
+
+struct bind_value bind(struct bind_map* map, char *key, struct bind_value value) {
+	if (map->kvs == NULL) {
+		map->cap = BIND_INIT;
+		map->kvs = (struct bind_value *)malloc(sizeof(struct bind_value) * map->cap);
+	}
+
+	int hashed_key = hash(key, map->cap);
+
+	if (value.type != BNONE)
+		map->kvs[hashed_key] = value;
+	else
+		value = map->kvs[hashed_key];
+
+	return value;
 }
 
 enum { VINT, VFLOAT, VSTR };
@@ -74,6 +118,15 @@ void interp(char *source, int n) {
 	int top = -1;
 	char *tok, *rest = source;
 
+	struct bind_map map = {0};
+	bind(&map, "+", MK_NATIVE(op_add));
+	bind(&map, "-", MK_NATIVE(op_sub));
+	bind(&map, "*", MK_NATIVE(op_mul));
+	bind(&map, "/", MK_NATIVE(op_div));
+
+	bind(&map, "print", MK_NATIVE(op_print));
+	bind(&map, "dup", MK_NATIVE(op_dup));
+
     while (tok = strtok_r(rest, " ", &rest)) {
     	if (isdigit(*tok)) {
     		int i = 1, len = strlen(tok), is_float = 0; 
@@ -101,13 +154,23 @@ void interp(char *source, int n) {
 
 			char *str = strndup(tok + 1, i - 2);
     		stack[++top] = (struct value){ .type = VSTR, .v_str = str };
-    	} else if (strcmp(tok, "+") == 0) op_add(stack, &top);
-    	else if (strcmp(tok, "-") == 0) op_sub(stack, &top);
-		else if (strcmp(tok, "*") == 0) op_mul(stack, &top);
-		else if (strcmp(tok, "/") == 0) op_div(stack, &top);	
-		else if (strcmp(tok, "dup") == 0) op_dup(stack, &top);
-    	else if (strcmp(tok, "print") == 0)
-    		op_print(stack, &top);
+    	} 
+    	else {
+    		struct bind_value bv = bind(&map, tok, MK_NONE());
+
+    		switch (bv.type) {
+    			case BNATIVE:
+    				bv.native(stack, &top);
+    				break;
+    			default:
+    				int blank = 0;
+    				while (isspace(tok[blank++]));
+
+    				if (blank < 1)
+    					printf("unimplemented: '%s'\n", tok);
+    				break;
+    		}
+    	}
     }
 }
 
