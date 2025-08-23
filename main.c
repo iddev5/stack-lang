@@ -39,6 +39,22 @@ void op_add(struct value *stack, int *top) {
 	}
 }
 
+void op_print(struct value *stack, int *top) {
+	struct value a = stack[*top];
+
+	switch (a.type) {
+		case VINT:
+			printf("%d", a.v_int);
+			break;
+		case VFLOAT:
+			printf("%f", a.v_float);
+			break;
+		case VSTR:
+			printf("%s", a.v_str);
+			break;
+	}
+}
+
 void interp(char *source, int n) {
 	struct value stack[STACK_INIT];
 	int top = 0;
@@ -65,10 +81,10 @@ void interp(char *source, int n) {
     				printf("error: invalid token\n");
     				break;
     		}
-    	} else if (strcmp(tok, "+") == 0) {
+    	} else if (strcmp(tok, "+") == 0)
     		op_add(stack, &top);
-    	} else if (strcmp(tok, ".") == 0)
-    		printf("%d", stack[top].v_int);
+    	else if (strcmp(tok, ".") == 0)
+    		op_print(stack, &top);
     }
 }
 
