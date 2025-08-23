@@ -97,7 +97,7 @@ void interp(char *source, int n) {
     	else if (strcmp(tok, "-") == 0) op_sub(stack, &top);
 		else if (strcmp(tok, "*") == 0) op_mul(stack, &top);
 		else if (strcmp(tok, "/") == 0) op_div(stack, &top);
-    	else if (strcmp(tok, ".") == 0)
+    	else if (strcmp(tok, "print") == 0)
     		op_print(stack, &top);
     }
 }
