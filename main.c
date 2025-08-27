@@ -154,8 +154,16 @@ void interp(char *source, int n) {
 
 			char *str = strndup(tok + 1, i - 2);
     		stack[++top] = (struct value){ .type = VSTR, .v_str = str };
-    	} 
-    	else {
+    	} else if (strcmp(tok, "def") == 0) {
+    		char *name = strtok_r(rest, " ", &rest);
+    		printf("fn name: %s\nfn content: ", name);
+
+    		char *end = strstr(rest, ";;");
+			while (rest != end + 2) {
+				putchar(*rest++);
+			}
+    		
+    	} else {
     		struct bind_value bv = bind(&map, tok, MK_NONE());
 
     		switch (bv.type) {
