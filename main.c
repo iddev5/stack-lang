@@ -12,7 +12,7 @@ struct value;
 unsigned int hash(char *string, int cap) {
 	unsigned int code = 0;
 	for (code = 0; *string != '\0'; string++) {
-		code = *string + 32 * code;
+		code = *string + 31 * code;
 	}
 
 	return code % cap;
