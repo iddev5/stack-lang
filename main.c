@@ -116,6 +116,19 @@ void op_dup(struct value *stack, int *top) {
 	stack[++*top] = duped_a;
 }
 
+void op_drop(struct value *stack, int *top) {
+	*top -= 1;
+}
+
+void op_ddump(struct value *stack, int *top) {
+	putchar('[');
+	for (int i = 0; i <= *top ; i++) {
+		op_print(stack, &i);
+		if (i != *top) printf(", ");
+	}
+	putchar(']');
+}
+
 void interp(char *source, int n) {
 	struct value stack[STACK_INIT];
 	int top = -1;
@@ -129,6 +142,8 @@ void interp(char *source, int n) {
 
 	bind(&map, "print", MK_NATIVE(op_print));
 	bind(&map, "dup", MK_NATIVE(op_dup));
+	bind(&map, "drop", MK_NATIVE(op_drop));
+	bind(&map, "ddump", MK_NATIVE(op_ddump));
 
     while (tok = strtok_r(rest, " ", &rest)) {
     	if (isdigit(*tok)) {
@@ -165,7 +180,6 @@ void interp(char *source, int n) {
 			while (rest != end + 2) {
 				putchar(*rest++);
 			}
-    		
     	} else {
     		struct bind_value bv = bind(&map, tok, MK_NONE());
 
