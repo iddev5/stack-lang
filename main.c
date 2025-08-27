@@ -50,9 +50,12 @@ struct bind_value bind(struct bind_map* map, char *key, struct bind_value value)
 
 	int hashed_key = hash(key, map->cap);
 
-	if (value.type != BNONE)
+	if (value.type != BNONE) {
+		#ifdef DEBUG
+			printf("[DEBUG] bind: %s -> %d\n", key, hashed_key);
+		#endif
 		map->kvs[hashed_key] = value;
-	else
+	} else
 		value = map->kvs[hashed_key];
 
 	return value;
