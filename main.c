@@ -201,9 +201,11 @@ void interp(char *source, int n) {
 
 int main() {
     char source[255];
-    fread(source, 255, sizeof(char), stdin);
+    int size = fread(source, 255, sizeof(char), stdin);
 
-    printf("contents: %s\n", source);
+    #ifdef DEBUG
+    	printf("[DEBUG] main: input: %s\n", source);
+    #endif
 
     // printf("%d", n);
     interp(source, 255);
