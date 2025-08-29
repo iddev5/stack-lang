@@ -5,14 +5,16 @@
 
 #define STACK_INIT 255
 #define BIND_INIT 64
+#define TABLE_MAX_LOAD 0.75
 
 struct value;
 
-// TODO: better hashing function/strategy
+// Algorithm FVA-1a
 unsigned int hash(char *string, int cap) {
-	unsigned int code = 0;
-	for (code = 0; *string != '\0'; string++) {
-		code = *string + 31 * code;
+	unsigned int code = 216613626;
+	for (; *string != '\0'; string++) {
+		code ^= (unsigned char)*string;
+		code *= 16777619;
 	}
 
 	return code % cap;
@@ -34,18 +36,24 @@ struct bind_value {
 // TODO
 struct bind_value_kv {
 	char *key;
+	unsigned int hash;
 	struct bind_value value;
 };
 
 struct bind_map {
 	struct bind_value *kvs;
-	int cap;
+	int cap, count;
 };
 
 struct bind_value bind(struct bind_map* map, char *key, struct bind_value value) {
 	if (map->kvs == NULL) {
 		map->cap = BIND_INIT;
+		map->count = 0;
 		map->kvs = (struct bind_value *)malloc(sizeof(struct bind_value) * map->cap);
+	}
+
+	if (map->count + 1 > map->cap * TABLE_MAX_LOAD) {
+		// TODO: grow
 	}
 
 	int hashed_key = hash(key, map->cap);
